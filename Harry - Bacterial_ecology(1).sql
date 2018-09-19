@@ -69,4 +69,4 @@ WHERE
   AND SAddress.RelationshipToPatient = 'SELF'
   AND SAddress.AddressType = 'PATIENT'
   AND SPatient.TestPatientFlag IS NULL
-  AND Microbiology.SpecimenTakenDateTime >= DATEADD(MONTH, -24, GETDATE())
+  AND Microbiology.SpecimenTakenDateTime >= DATEADD(MONTH, -24, GETDATE())-
