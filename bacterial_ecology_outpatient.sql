@@ -1,7 +1,3 @@
-USE LSV;
-GO
-CREATE PROCEDURE Bacterial_Ecology_Outpatient
-AS
 DECLARE @Sta3n smallint = 612
 
 -- SPatient Info
@@ -96,8 +92,6 @@ WHERE
 	Microbiology.Sta3n =  @Sta3n
 	AND Microbiology.SpecimenTakenDateTime BETWEEN tbl1.VisitDate AND CAST(DATEADD(day, +3, tbl1.VisitDate) AS DATE)
 
-DROP TABLE IF EXISTS #Temp_BEO_1 
-
 CREATE CLUSTERED COLUMNSTORE INDEX ccsi_temp_beo_2
 	ON #Temp_BEO_2
 
@@ -149,8 +143,6 @@ WHERE
 	RxOutpat.Sta3n = @Sta3n -- @Sta3n
 	AND RxOutpat.IssueDate >= CAST(DATEADD(MONTH, -6, GETDATE()) AS DATE)
 	AND DimLocalDrug.DrugClassSID in ('800010973', '800010982', '800010983', '800010984', '800011263') 
-
-DROP TABLE IF EXISTS D05_VISN21Sites.MAC.Temp_BEO_2
 
 -- Locations, Primary Stop
 SELECT
@@ -208,8 +200,6 @@ FROM
 		ON RxOutpatDimLocation.PrimaryStopCodeSID = RxOutpatDimStopCode1.StopCodeSID
 WHERE
 	OutpatDimLocation.Sta3n =  @Sta3n
-
-DROP TABLE IF EXISTS #Temp_BEO_3
 
 -- Locations, Secondary Stop
 SELECT
@@ -270,13 +260,10 @@ FROM
 		ON RxOutpatDimLocation.SecondaryStopCodeSID = RxOutpatDimStopCode2.StopCodeSID
 WHERE
 	OutpatDimLocation.Sta3n = @Sta3n
-	
-DROP TABLE IF EXISTS #Temp_BEO_4
 
--- Clean slate
-DROP TABLE IF EXISTS D05_VISN21Sites.MAC.Bacterial_Ecology_Outpatient
 -- Final table
---USE D05_VISN21Sites
+INSERT INTO
+	MAC.Bacterial_Ecology_Outpatient
 SELECT
 	 tbl5.PatientSID
 	,tbl5.Sta3n
@@ -310,8 +297,6 @@ SELECT
 	,tbl5.AntibioticSensitivityValue
 	,tbl5.Antibiotic
 	,tbl5.Organism
-INTO
-	D05_VISN21Sites.MAC.Bacterial_Ecology_Outpatient
 FROM
 	#Temp_BEO_5 AS tbl5 
 WHERE
@@ -324,10 +309,3 @@ WHERE
 		OR IssueDate IS NULL
 	)
 	AND OutpatLocationName NOT LIKE 'LAB%'
-
-CREATE CLUSTERED COLUMNSTORE INDEX ccsi_Bacterial_Ecology_Outpatient
-	ON D05_VISN21Sites.MAC.Bacterial_Ecology_Outpatient
-
--- Clean up
-DROP TABLE IF EXISTS #Temp_BEO_0, #Temp_BEO_2, #Temp_BEO_2, #Temp_BEO_3, #Temp_BEO_4, #Temp_BEO_5
-GO
